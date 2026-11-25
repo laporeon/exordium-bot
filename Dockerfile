@@ -14,7 +14,7 @@ RUN apk upgrade --no-cache \
     && addgroup -S javoidbot \
     && adduser -S javoidbot -G javoidbot
 
-COPY --from=build --chown=javoidbot:javoidbot /app/target/javoidbot.jar app.jar
+COPY --from=build --chown=javoidbot:javoidbot /app/target/javoid-bot.jar app.jar
 
 USER javoidbot
 
