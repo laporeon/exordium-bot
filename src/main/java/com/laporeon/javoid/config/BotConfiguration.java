@@ -1,11 +1,11 @@
-package com.laporeon.config;
+package com.laporeon.javoid.config;
 
-import com.laporeon.commands.PrefixCommand;
-import com.laporeon.commands.impl.ClearChatCommand;
-import com.laporeon.commands.impl.ComplainCommand;
-import com.laporeon.commands.impl.PingCommand;
-import com.laporeon.listeners.CommandListener;
-import com.laporeon.listeners.ReadyEventListener;
+import com.laporeon.javoid.commands.PrefixCommand;
+import com.laporeon.javoid.commands.impl.ClearChatCommand;
+import com.laporeon.javoid.commands.impl.ComplainCommand;
+import com.laporeon.javoid.commands.impl.PingCommand;
+import com.laporeon.javoid.listeners.CommandListener;
+import com.laporeon.javoid.listeners.ReadyEventListener;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.slf4j.Logger;

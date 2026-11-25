@@ -1,4 +1,4 @@
-package com.laporeon.listeners;
+package com.laporeon.javoid.listeners;
 
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;

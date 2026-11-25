@@ -1,6 +1,6 @@
-package com.laporeon.commands.impl;
+package com.laporeon.javoid.commands.impl;
 
-import com.laporeon.commands.PrefixCommand;
+import com.laporeon.javoid.commands.PrefixCommand;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class PingCommand implements PrefixCommand {

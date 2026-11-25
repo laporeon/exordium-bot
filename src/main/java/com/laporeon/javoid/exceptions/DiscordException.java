@@ -1,4 +1,4 @@
-package com.laporeon.exceptions;
+package com.laporeon.javoid.exceptions;
 
 public class DiscordException extends RuntimeException {
     public DiscordException(String message) {

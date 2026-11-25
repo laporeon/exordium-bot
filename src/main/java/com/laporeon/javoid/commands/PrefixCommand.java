@@ -1,4 +1,4 @@
-package com.laporeon.commands;
+package com.laporeon.javoid.commands;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 

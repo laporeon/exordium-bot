@@ -1,6 +1,6 @@
-package com.laporeon.config;
+package com.laporeon.javoid.config;
 
-import com.laporeon.exceptions.ConfigurationException;
+import com.laporeon.javoid.exceptions.ConfigurationException;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.util.Optional;

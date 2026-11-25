@@ -1,4 +1,4 @@
-package com.laporeon.exceptions;
+package com.laporeon.javoid.exceptions;
 
 public class ConfigurationException extends RuntimeException {
     public ConfigurationException(String message) {

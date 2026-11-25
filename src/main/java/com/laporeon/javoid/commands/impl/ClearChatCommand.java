@@ -1,6 +1,6 @@
-package com.laporeon.commands.impl;
+package com.laporeon.javoid.commands.impl;
 
-import com.laporeon.commands.PrefixCommand;
+import com.laporeon.javoid.commands.PrefixCommand;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;

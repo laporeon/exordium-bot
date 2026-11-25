@@ -1,6 +1,6 @@
-package com.laporeon.listeners;
+package com.laporeon.javoid.listeners;
 
-import com.laporeon.commands.PrefixCommand;
+import com.laporeon.javoid.commands.PrefixCommand;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
@@ -54,7 +54,7 @@ public class CommandListener extends ListenerAdapter {
             prefixCommand.execute(event, args);
         } catch (Exception e) {
             log.error("PrefixCommand '{}' failed for user {}", commandName, event.getAuthor().getId(), e);
-            event.getMessage().reply("Something went wrong while running this prefixCommand.").queue();
+            event.getMessage().reply("Não foi possível rodar o comando no momento. Aguarde uns segundos e tente novamente.").queue();
         }
     }
 

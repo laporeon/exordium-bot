@@ -1,6 +1,6 @@
-package com.laporeon;
+package com.laporeon.javoid;
 
-import com.laporeon.config.BotConfiguration;
+import com.laporeon.javoid.config.BotConfiguration;
 
 public class JaVoidApplication {
     public static void main(String[] args) throws InterruptedException {
