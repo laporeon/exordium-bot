@@ -1,6 +1,7 @@
 package com.laporeon.javoid.commands.impl;
 
 import com.laporeon.javoid.commands.PrefixCommand;
+import com.laporeon.javoid.helpers.MessageManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -16,7 +17,7 @@ public class ComplainCommand implements PrefixCommand  {
 
     @Override
     public String getDescription() {
-        return "Ninguém quer solução aqui não.";
+        return MessageManager.get("complain.description");
     }
 
     @Override
@@ -24,9 +25,9 @@ public class ComplainCommand implements PrefixCommand  {
         event.getChannel().sendMessageEmbeds(
                 new EmbedBuilder()
                         .setColor(Color.YELLOW)
-                        .setTitle("SOLUÇÃO?? \uD83E\uDD28")
-                        .setImage("https://i.imgur.com/q9cPy2m.jpeg")
-                        .setDescription("Eu não quero solução, eu quero é reclamar!!").build()
+                        .setTitle(MessageManager.get("complain.title"))
+                        .setImage(MessageManager.get("complain.imageUrl"))
+                        .setDescription(MessageManager.get("complain.body")).build()
         ).queue();
     }
 }

@@ -1,15 +1,17 @@
 package com.laporeon.javoid.commands.impl;
 
 import com.laporeon.javoid.commands.PrefixCommand;
+import com.laporeon.javoid.helpers.MessageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -21,14 +23,9 @@ public class ClearChatCommand implements PrefixCommand {
     private static final String COMMAND_NAME = "limpar";
     private static final int MIN_AMOUNT = 1;
     private static final int MAX_AMOUNT = 100;
-    private static final long FEEDBACK_TTL_SECONDS = 5;
-    private static final String USAGE = """
-        **Valor inválido.** Informe um número entre %d e %d.
-
-        **Exemplos:**
-        `!limpar` → remove as últimas %d mensagens
-        `!limpar 10` → remove as últimas 10 mensagens"""
-            .formatted(MIN_AMOUNT, MAX_AMOUNT, MAX_AMOUNT);
+    private static final long FEEDBACK_TTL_SECONDS = 10;
+    private static final ErrorHandler IGNORE_UNKNOWN_MESSAGE =
+            new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE);
 
     @Override
     public String getName() {
@@ -37,13 +34,13 @@ public class ClearChatCommand implements PrefixCommand {
 
     @Override
     public String getDescription() {
-        return "Remove até as últimas %d mensagens do canal.".formatted(MAX_AMOUNT);
+        return MessageManager.get("clear.description", MAX_AMOUNT);
     }
 
     @Override
     public void execute(MessageReceivedEvent event, String[] args) {
         if (!event.isFromGuild()) {
-            replyTemporary(event, "Esse comando só funciona em servidores.");
+            replyTemporary(event, MessageManager.get("clear.guild-only"));
             return;
         }
 
@@ -51,18 +48,18 @@ public class ClearChatCommand implements PrefixCommand {
         Member author = event.getMember();
 
         if (author == null || !author.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
-            replyTemporary(event, "Você não tem permissões suficientes para executar esse comando.");
+            replyTemporary(event, MessageManager.get("clear.no-permission"));
             return;
         }
 
         Member self = event.getGuild().getSelfMember();
         if (!self.hasPermission(channel, Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY)) {
-            replyTemporary(event, "Preciso das permissões **Gerenciar mensagens** e **Ver histórico de mensagens** neste canal.");
+            replyTemporary(event, MessageManager.get("clear.bot-no-permission"));
             return;
         }
 
         if (args.length > 2 || (args.length == 2 && !AMOUNT_PATTERN.matcher(args[1]).matches())) {
-            replyTemporary(event, USAGE);
+            replyTemporary(event, MessageManager.get("clear.usage", MIN_AMOUNT, MAX_AMOUNT));
             return;
         }
 
@@ -75,31 +72,32 @@ public class ClearChatCommand implements PrefixCommand {
         channel.getIterableHistory()
                .skipTo(commandMessage.getIdLong())
                .takeAsync(amount)
-               .thenCompose(history -> purge(channel, commandMessage, history))
-               .thenAccept(deleted -> sendTemporary(channel, "%d mensagem(ns) removida(s).".formatted(deleted)))
+               .thenCompose(history -> purge(channel, history))
+               .thenAccept(deleted -> sendTemporary(channel, MessageManager.get("clear.success", deleted, FEEDBACK_TTL_SECONDS)))
                .exceptionally(failure -> {
                    log.warn("Failed to clear messages in channel {}", channel.getId(), failure);
-                   sendTemporary(channel, "Não foi possível remover algumas mensagens.");
+                   sendTemporary(channel, MessageManager.get("clear.failure", FEEDBACK_TTL_SECONDS));
                    return null;
                });
     }
 
-    private CompletableFuture<Integer> purge(GuildMessageChannel channel, Message commandMessage, List<Message> history) {
-        List<Message> toDelete = new ArrayList<>(history);
-        toDelete.add(commandMessage);
-
-        CompletableFuture<?>[] deletions = channel.purgeMessages(toDelete).toArray(new CompletableFuture[0]);
+    private CompletableFuture<Integer> purge(GuildMessageChannel channel, List<Message> history) {
+        CompletableFuture<?>[] deletions = channel.purgeMessages(history).toArray(new CompletableFuture[0]);
         return CompletableFuture.allOf(deletions).thenApply(ignored -> history.size());
     }
 
     private void replyTemporary(MessageReceivedEvent event, String text) {
         event.getMessage()
              .reply(text)
-             .queue(reply -> reply.delete().queueAfter(FEEDBACK_TTL_SECONDS, TimeUnit.SECONDS));
+             .queue(reply -> reply.delete()
+                                  .queueAfter(FEEDBACK_TTL_SECONDS, TimeUnit.SECONDS, null, IGNORE_UNKNOWN_MESSAGE)
+             );
     }
 
     private void sendTemporary(GuildMessageChannel channel, String text) {
         channel.sendMessage(text)
-               .queue(message -> message.delete().queueAfter(FEEDBACK_TTL_SECONDS, TimeUnit.SECONDS));
+               .queue(msg -> msg.delete()
+                                .queueAfter(FEEDBACK_TTL_SECONDS, TimeUnit.SECONDS, null, IGNORE_UNKNOWN_MESSAGE)
+               );
     }
 }
