@@ -4,11 +4,10 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-public final class MessageManager {
-
+public final class BundleManager {
     private static final ResourceBundle BUNDLE = ResourceBundle.getBundle("messages", Locale.ROOT);
 
-    private MessageManager() {
+    private BundleManager() {
     }
 
     public static String get(String key, Object... args) {
