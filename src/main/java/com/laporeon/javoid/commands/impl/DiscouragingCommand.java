@@ -22,7 +22,7 @@ public class DiscouragingCommand implements PrefixCommand {
 
     @Override
     public void execute(MessageReceivedEvent event, String[] args) {
-        String message = RandomMessages.generateDiscouragingMessage();
+        String message = RandomMessages.generateMessage(RandomMessages.DISCOURAGING_MESSAGES);
         event.getChannel().sendMessage(message).queue();
     }
 }
