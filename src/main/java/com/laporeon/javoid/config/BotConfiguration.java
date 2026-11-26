@@ -1,25 +1,15 @@
 package com.laporeon.javoid.config;
 
 import com.laporeon.javoid.commands.PrefixCommand;
-import com.laporeon.javoid.commands.impl.ClearChatCommand;
-import com.laporeon.javoid.commands.impl.ComplainCommand;
-import com.laporeon.javoid.commands.impl.OldCommand;
-import com.laporeon.javoid.commands.impl.PingCommand;
 import com.laporeon.javoid.listeners.CommandListener;
 import com.laporeon.javoid.listeners.ReadyEventListener;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import java.util.List;
+import java.util.ServiceLoader;
 
 public class BotConfiguration {
-    private static final List<PrefixCommand> PREFIX_COMMANDS = List.of(
-            new PingCommand(),
-            new ClearChatCommand(),
-            new ComplainCommand(),
-            new OldCommand()
-    );
-
     public static void start() throws InterruptedException {
         EnvironmentConfiguration.validate();
 
@@ -27,9 +17,16 @@ public class BotConfiguration {
                   .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                   .addEventListeners(
                           new ReadyEventListener(),
-                          new CommandListener(PREFIX_COMMANDS)
+                          new CommandListener(loadPrefixCommands())
                   )
                   .build()
                   .awaitReady();
+    }
+
+    private static List<PrefixCommand> loadPrefixCommands() {
+        return ServiceLoader.load(PrefixCommand.class)
+                            .stream()
+                            .map(ServiceLoader.Provider::get)
+                            .toList();
     }
 }
