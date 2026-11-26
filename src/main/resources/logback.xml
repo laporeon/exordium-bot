@@ -5,7 +5,11 @@
             <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX, UTC} %-5level [%thread] %logger{30} - %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="info">
+
+    <logger name="com.laporeon.javoid" level="${LOG_LEVEL:-INFO}" />
+    <logger name="net.dv8tion.jda" level="${JDA_LOG_LEVEL:-INFO}" />
+
+    <root level="WARN">
         <appender-ref ref="CONSOLE" />
     </root>
 </configuration>
