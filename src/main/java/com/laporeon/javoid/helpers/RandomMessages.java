@@ -1,7 +1,7 @@
 package com.laporeon.javoid.helpers;
 
 public class RandomMessages {
-    private static final String[] DISCOURAGING_MESSAGES = {
+    public static final String[] DISCOURAGING_MESSAGES = {
             "Insista, persista, desista. Aceite o ciclo natural da vida.",
             "Sempre há luz no fim do túnel, mas é o trem vindo na sua direção.",
             "Se a vida te der limões, faça uma cara feia e aceite que vai ser azedo mesmo.",
@@ -154,8 +154,61 @@ public class RandomMessages {
             "Cada tentativa sua é um estudo de caso sobre fracasso."
     };
 
-    public static String generateDiscouragingMessage() {
-        int randomNumber = (int) (Math.random() * DISCOURAGING_MESSAGES.length);
-        return DISCOURAGING_MESSAGES[randomNumber];
+    public static final String[] GOOD_MORNING_MESSAGES = {
+            "Que hoje seu código compile de primeira e seus testes passem sem precisar de `@Disabled`.",
+            "Lembre-se: café não é bebida, é dependência de runtime. ☕",
+            "Hoje é um ótimo dia para fazer `git pull` antes de começar a trabalhar. Confia.",
+            "Acordei com 99 problemas e o `NullPointerException` foi só o primeiro.",
+            "Se a vida te der limões, abra uma issue. 🍋",
+            "Você apertou soneca 5 vezes? Isso não é preguiça, é retry com backoff exponencial.",
+            "Que seu dia tenha baixa latência e alta disponibilidade. 🚀",
+            "Já bebeu água hoje? Seu corpo também precisa de health check. 💧",
+            "Lembrete do dia: deploy na sexta-feira à tarde é esporte radical. Pratique com responsabilidade.",
+            "Acordar cedo é fácil, difícil é sair do `Thread.sleep()` sem um `interrupt()`.",
+            "Que seus merges sejam limpos e seus conflitos fiquem só no Git.",
+            "O sol nasceu sem precisar de documentação. Seja como o sol... mas documente seu código mesmo assim. 🌅",
+            "Se alguém perguntar como você está, responda \"200 OK\".",
+            "Hoje eu tô igual Wi-Fi de rodoviária: conectado, mas sem internet.",
+            "Já arrumou a cama? Pequenas vitórias também contam como commit.",
+            "Lembrem-se: \"funciona na minha máquina\" não é argumento, é confissão.",
+            "Hoje é dia de aprender algo novo, nem que seja aquele atalho do terminal que você esquece toda semana.",
+            "Meu humor de manhã é tipo regex: ninguém entende, nem eu.",
+            "Comece o dia com um `try`, porque o `catch` vem depois do almoço.",
+            "A cafeteira é o servidor mais crítico do escritório. Se ela cai, todo mundo cai junto. ☕🔥",
+            "Que seu código seja como piada boa: não precise de explicação.",
+            "Você não precisa ser um dev 10x. Ser 1x e bem descansado já é ótimo.",
+            "Tem gente que acorda com o canto dos pássaros. Eu acordo com notificação do Jira.",
+            "Seu eu do passado deixou um `// TODO: arrumar depois`. O \"depois\" é hoje. 😅",
+            "Gentileza é igual CDN: quanto mais perto das pessoas, melhor a experiência.",
+            "Se o dia começou com bug, lembre: todo bug é só uma feature que ainda não foi documentada. 🐛",
+            "Saí da cama, mas meu cérebro ainda tá no `docker compose up` esperando todos os serviços subirem.",
+            "Pergunta do dia: tabs ou espaços? (Resposta errada dá ban. Brincadeira... ou não.)",
+            "Hoje é um bom dia para refatorar, de preferência a rotina de dormir às 3h da manhã.",
+            "Errar faz parte. Até o compilador te avisa com carinho... às vezes com 247 erros de carinho.",
+            "Meu café tá tão forte que passou no code review sozinho.",
+            "A vida é curta demais para logs sem timestamp. ⏱️",
+            "Não sei quem precisa ouvir isso, mas senha não vai pro repositório. Nem o `.env`.",
+            "Acordei com a energia de um `SELECT *` sem `WHERE`: trazendo tudo, sem filtro nenhum.",
+            "Respira fundo. Nem toda reunião precisa virar um deadlock.",
+            "Se o dia estiver pesado, quebre em tarefas menores. Funciona no código e na vida.",
+            "Minha cama tem uma política de retenção muito agressiva. Quase não consegui fazer logout.",
+            "Que o Stack Overflow esteja com você, e que a resposta aceita não seja de 2009.",
+            "O gato derrubou café no meu teclado e agora eu programo em Brainf*ck sem querer. 🐱",
+            "Lembrete amigável: não foi o estagiário que derrubou a produção. Foi a falta de testes.",
+            "Hoje é dia de commit pequeno, mensagem clara e consciência tranquila.",
+            "Acordar é basicamente um cold start. Dá uns minutos que a JVM esquenta. ☕",
+            "Eu ia contar uma piada sobre UDP, mas não sei se você ia receber.",
+            "Por que o programador foi ao médico? Estava com muitos bytes de dor de cabeça. Tá, essa foi ruim, mas pelo menos te acordou.",
+            "Se acordar cedo fosse uma linguagem, seria Assembly: difícil, verboso e ninguém pediu.",
+            "Sua saúde mental não tem rollback. Faça pausas. 💚",
+            "Hoje meu único objetivo é ser tão confiável quanto o `Ctrl+Z`.",
+            "Quem acorda cedo pega o ambiente de staging livre. 🐦",
+            "Já cumprimentei o porteiro, o café e o terminal. Só faltavam vocês.",
+            "Quantos programadores são necessários para trocar uma lâmpada? Nenhum, é problema de hardware. 💡"
+    };
+
+    public static String generateMessage(String[] array) {
+        int randomNumber = (int) (Math.random() * array.length);
+        return array[randomNumber];
     }
 }
