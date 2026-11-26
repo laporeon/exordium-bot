@@ -13,6 +13,6 @@ public class ReadyEventListener extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        log.info("ExordiumBot is up and ready | timestamp={}", Instant.now());
+        log.info("JaVoidBot is up and ready | timestamp={}", Instant.now());
     }
 }
