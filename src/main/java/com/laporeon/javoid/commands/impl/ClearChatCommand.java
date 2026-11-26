@@ -67,25 +67,52 @@ public class ClearChatCommand implements PrefixCommand {
 
         int amount = args.length == 1 ? MAX_AMOUNT : Integer.parseInt(args[1]);
 
-        clearMessages(channel, event.getMessage(), amount);
+        clearMessages(channel, event.getMessage(), author, amount);
     }
 
-    private void clearMessages(GuildMessageChannel channel, Message commandMessage, int amount) {
+    private void clearMessages(GuildMessageChannel channel, Message commandMessage, Member author, int amount) {
         channel.getIterableHistory()
                .skipTo(commandMessage.getIdLong())
                .takeAsync(amount)
-               .thenCompose(history -> purge(channel, history))
-               .thenAccept(deleted -> sendTemporary(channel, BundleManager.get("clear.success", deleted, FEEDBACK_TTL_SECONDS)))
+               .thenCompose(msgs -> purge(channel, msgs))
+               .thenCompose(deleted -> {
+                   log.info("{} message(s) deleted by userId={} | username={} | guildId={} | channelId={}",
+                           deleted,
+                           author.getIdLong(),
+                           author.getUser().getName(),
+                           channel.getGuild().getIdLong(),
+                           channel.getIdLong());
+                   return sendTemporary(channel, BundleManager.get("clear.success", deleted, FEEDBACK_TTL_SECONDS));
+               })
+               .thenCompose(ignored -> deleteCommandMessage(commandMessage))
                .exceptionally(failure -> {
-                   log.warn("Failed to clear messages in channel {}", channel.getId(), failure);
+                   log.warn("Failed to clear messages | requested by userId={} | username={} | guildId={} | channelId={}",
+                           author.getIdLong(),
+                           author.getUser().getName(),
+                           channel.getGuild().getIdLong(),
+                           channel.getIdLong(),
+                           failure);
                    sendTemporary(channel, BundleManager.get("clear.failure", FEEDBACK_TTL_SECONDS));
                    return null;
                });
     }
 
-    private CompletableFuture<Integer> purge(GuildMessageChannel channel, List<Message> history) {
-        CompletableFuture<?>[] deletions = channel.purgeMessages(history).toArray(new CompletableFuture[0]);
-        return CompletableFuture.allOf(deletions).thenApply(ignored -> history.size());
+    private CompletableFuture<Integer> purge(GuildMessageChannel channel, List<Message> messages) {
+        CompletableFuture<?>[] deletions = channel.purgeMessages(messages).toArray(new CompletableFuture[0]);
+        return CompletableFuture.allOf(deletions).thenApply(ignored -> messages.size());
+    }
+
+    private CompletableFuture<Void> deleteCommandMessage(Message commandMessage) {
+        return commandMessage.delete()
+                             .submit()
+                             .exceptionally(failure -> {
+                                 log.debug("Could not delete command message | messageId={} | guildId={} | channelId={}",
+                                         commandMessage.getIdLong(),
+                                         commandMessage.getGuild().getIdLong(),
+                                         commandMessage.getChannel().getIdLong(),
+                                         failure);
+                                 return null;
+                             });
     }
 
     private void replyTemporary(MessageReceivedEvent event, String text) {
@@ -96,10 +123,17 @@ public class ClearChatCommand implements PrefixCommand {
              );
     }
 
-    private void sendTemporary(GuildMessageChannel channel, String text) {
-        channel.sendMessage(text)
-               .queue(msg -> msg.delete()
-                                .queueAfter(FEEDBACK_TTL_SECONDS, TimeUnit.SECONDS, null, IGNORE_UNKNOWN_MESSAGE)
-               );
+    private CompletableFuture<Void> sendTemporary(GuildMessageChannel channel, String text) {
+        return channel.sendMessage(text)
+                      .submit()
+                      .thenAccept(msg -> msg.delete()
+                                            .queueAfter(FEEDBACK_TTL_SECONDS, TimeUnit.SECONDS, null, IGNORE_UNKNOWN_MESSAGE))
+                      .exceptionally(failure -> {
+                          log.debug("Could not send feedback message | guildId={} | channelId={}",
+                                  channel.getGuild().getIdLong(),
+                                  channel.getIdLong(),
+                                  failure);
+                          return null;
+                      });
     }
 }
