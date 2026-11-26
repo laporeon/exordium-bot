@@ -1,7 +1,7 @@
 package com.laporeon.javoid.listeners;
 
 import com.laporeon.javoid.commands.PrefixCommand;
-import com.laporeon.javoid.helpers.MessageManager;
+import com.laporeon.javoid.helpers.BundleManager;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -9,12 +9,10 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CommandListener extends ListenerAdapter {
@@ -22,20 +20,14 @@ public class CommandListener extends ListenerAdapter {
     private static final String PREFIX = "!";
     private static final String HELP_COMMAND = "ajuda";
     private static final int FAILURE_MESSAGE_TIMEOUT = 15;
+    private final List<PrefixCommand> prefixCommands;
     private static final ErrorHandler IGNORE_UNKNOWN_MESSAGE =
             new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE);
-    private final Map<String, PrefixCommand> commands;
 
     public CommandListener(List<PrefixCommand> prefixCommands) {
-        this.commands = prefixCommands.stream()
-                                      .collect(Collectors.toMap(
-                                              prefixCommand -> prefixCommand.getName().toLowerCase(Locale.ROOT),
-                                              Function.identity(),
-                                              (first, second) -> {
-                                                  throw new IllegalStateException("Duplicate command name: " + first.getName());
-                                              },
-                                              LinkedHashMap::new
-                                      ));
+        this.prefixCommands = prefixCommands.stream()
+                                            .sorted(Comparator.comparing(PrefixCommand::getName, String.CASE_INSENSITIVE_ORDER))
+                                            .toList();
     }
 
     @Override
@@ -57,17 +49,19 @@ public class CommandListener extends ListenerAdapter {
             return;
         }
 
-        PrefixCommand prefixCommand = commands.get(commandName);
-        if (prefixCommand == null) {
-            return;
-        }
+        prefixCommands.stream()
+                      .filter(command -> command.getName().equalsIgnoreCase(commandName))
+                      .findFirst()
+                      .ifPresent(command -> execute(command, event, args));
+    }
 
+    private void execute(PrefixCommand command, MessageReceivedEvent event, String[] args) {
         try {
-            prefixCommand.execute(event, args);
+            command.execute(event, args);
         } catch (Exception e) {
-            log.error("PrefixCommand '{}' failed for user {}", commandName, event.getAuthor().getId(), e);
+            log.error("PrefixCommand '{}' failed for user {}", command.getName(), event.getAuthor().getId(), e);
             event.getMessage()
-                 .reply(MessageManager.get("command.failure", FAILURE_MESSAGE_TIMEOUT))
+                 .reply(BundleManager.get("command.failure", FAILURE_MESSAGE_TIMEOUT))
                  .queue(reply -> reply.delete().queueAfter(
                          FAILURE_MESSAGE_TIMEOUT,
                          TimeUnit.SECONDS,
@@ -78,13 +72,12 @@ public class CommandListener extends ListenerAdapter {
     }
 
     private void sendHelp(MessageReceivedEvent event) {
-        String descriptions = commands.values()
-                                      .stream()
-                                      .map(cmd -> "`" + PREFIX + cmd.getName() + "` — " + cmd.getDescription())
-                                      .collect(Collectors.joining("\n"));
+        String descriptions = prefixCommands.stream()
+                                            .map(cmd -> "`" + PREFIX + cmd.getName() + "` — " + cmd.getDescription())
+                                            .collect(Collectors.joining("\n"));
 
-        String helpMessage = MessageManager.get("help.title") + "\n\n"
-                + "`" + PREFIX + HELP_COMMAND + "` — " + MessageManager.get("help.self") + "\n"
+        String helpMessage = BundleManager.get("help.title") + "\n\n"
+                + "`" + PREFIX + HELP_COMMAND + "` — " + BundleManager.get("help.self") + "\n"
                 + descriptions;
 
         event.getChannel().sendMessage(helpMessage).queue();
