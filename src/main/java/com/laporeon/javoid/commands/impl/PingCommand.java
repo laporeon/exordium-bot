@@ -1,9 +1,11 @@
 package com.laporeon.javoid.commands.impl;
 
+import com.google.auto.service.AutoService;
 import com.laporeon.javoid.commands.PrefixCommand;
-import com.laporeon.javoid.helpers.MessageManager;
+import com.laporeon.javoid.helpers.BundleManager;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+@AutoService(PrefixCommand.class)
 public class PingCommand implements PrefixCommand {
     private static final String COMMAND_NAME = "ping";
 
@@ -14,11 +16,11 @@ public class PingCommand implements PrefixCommand {
 
     @Override
     public String getDescription() {
-        return MessageManager.get("ping.description");
+        return BundleManager.get("ping.description");
     }
 
     @Override
     public void execute(MessageReceivedEvent event, String[] args) {
-        event.getChannel().sendMessage(MessageManager.get("ping.reply")).queue();
+        event.getChannel().sendMessage(BundleManager.get("ping.reply")).queue();
     }
 }

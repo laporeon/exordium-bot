@@ -1,7 +1,8 @@
 package com.laporeon.javoid.commands.impl;
 
+import com.google.auto.service.AutoService;
 import com.laporeon.javoid.commands.PrefixCommand;
-import com.laporeon.javoid.helpers.MessageManager;
+import com.laporeon.javoid.helpers.BundleManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+@AutoService(PrefixCommand.class)
 public class ClearChatCommand implements PrefixCommand {
     private static final Logger log = LoggerFactory.getLogger(ClearChatCommand.class);
     private static final Pattern AMOUNT_PATTERN = Pattern.compile("100|[1-9]\\d?");
@@ -34,13 +36,13 @@ public class ClearChatCommand implements PrefixCommand {
 
     @Override
     public String getDescription() {
-        return MessageManager.get("clear.description", MAX_AMOUNT);
+        return BundleManager.get("clear.description", MAX_AMOUNT);
     }
 
     @Override
     public void execute(MessageReceivedEvent event, String[] args) {
         if (!event.isFromGuild()) {
-            replyTemporary(event, MessageManager.get("clear.guild-only"));
+            replyTemporary(event, BundleManager.get("clear.guild-only"));
             return;
         }
 
@@ -48,18 +50,18 @@ public class ClearChatCommand implements PrefixCommand {
         Member author = event.getMember();
 
         if (author == null || !author.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
-            replyTemporary(event, MessageManager.get("clear.no-permission"));
+            replyTemporary(event, BundleManager.get("clear.no-permission"));
             return;
         }
 
         Member self = event.getGuild().getSelfMember();
         if (!self.hasPermission(channel, Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY)) {
-            replyTemporary(event, MessageManager.get("clear.bot-no-permission"));
+            replyTemporary(event, BundleManager.get("clear.bot-no-permission"));
             return;
         }
 
         if (args.length > 2 || (args.length == 2 && !AMOUNT_PATTERN.matcher(args[1]).matches())) {
-            replyTemporary(event, MessageManager.get("clear.usage", MIN_AMOUNT, MAX_AMOUNT));
+            replyTemporary(event, BundleManager.get("clear.usage", MIN_AMOUNT, MAX_AMOUNT));
             return;
         }
 
@@ -73,10 +75,10 @@ public class ClearChatCommand implements PrefixCommand {
                .skipTo(commandMessage.getIdLong())
                .takeAsync(amount)
                .thenCompose(history -> purge(channel, history))
-               .thenAccept(deleted -> sendTemporary(channel, MessageManager.get("clear.success", deleted, FEEDBACK_TTL_SECONDS)))
+               .thenAccept(deleted -> sendTemporary(channel, BundleManager.get("clear.success", deleted, FEEDBACK_TTL_SECONDS)))
                .exceptionally(failure -> {
                    log.warn("Failed to clear messages in channel {}", channel.getId(), failure);
-                   sendTemporary(channel, MessageManager.get("clear.failure", FEEDBACK_TTL_SECONDS));
+                   sendTemporary(channel, BundleManager.get("clear.failure", FEEDBACK_TTL_SECONDS));
                    return null;
                });
     }
