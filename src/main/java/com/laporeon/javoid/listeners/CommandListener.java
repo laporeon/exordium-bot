@@ -32,9 +32,7 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) {
-            return;
-        }
+        if (event.getAuthor().isBot() || !event.isFromGuild()) return;
 
         String content = event.getMessage().getContentRaw().strip();
         if (!content.startsWith(PREFIX)) {
