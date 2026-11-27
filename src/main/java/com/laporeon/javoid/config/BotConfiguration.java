@@ -56,10 +56,25 @@ public final class BotConfiguration {
             return;
         }
 
+        clearGuildCommands(jda);
+
         jda.updateCommands().addCommands(data).queue(
                 registered -> log.info("{} global slash commands registered", registered.size()),
                 error -> log.error("failed to register global slash commands", error)
         );
+    }
+
+    /**
+     * Removes guild-scoped commands left over from development runs, which would otherwise
+     * show up duplicated next to the global ones.
+     */
+    private static void clearGuildCommands(JDA jda) {
+        for (Guild guild : jda.getGuilds()) {
+            guild.updateCommands().queue(
+                    cleared -> log.info("guild slash commands cleared | guild_id={}", guild.getId()),
+                    error -> log.error("failed to clear guild slash commands | guild_id={}", guild.getId(), error)
+            );
+        }
     }
 
     private static void registerDevelopmentCommands(JDA jda, List<? extends CommandData> data) {
