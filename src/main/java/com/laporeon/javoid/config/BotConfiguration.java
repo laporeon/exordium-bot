@@ -13,8 +13,9 @@ public class BotConfiguration {
     public static void start() throws InterruptedException {
         EnvironmentConfiguration.validate();
 
-        JDABuilder.createDefault(EnvironmentConfiguration.token())
-                  .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+        JDABuilder.createLight(EnvironmentConfiguration.token(),
+                          GatewayIntent.GUILD_MESSAGES,
+                          GatewayIntent.MESSAGE_CONTENT)
                   .addEventListeners(
                           new ReadyEventListener(),
                           new CommandListener(loadPrefixCommands())
