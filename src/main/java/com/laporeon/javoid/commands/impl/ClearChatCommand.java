@@ -1,14 +1,18 @@
 package com.laporeon.javoid.commands.impl;
 
 import com.google.auto.service.AutoService;
-import com.laporeon.javoid.commands.PrefixCommand;
+import com.laporeon.javoid.commands.BotCommand;
 import com.laporeon.javoid.helpers.BundleManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +22,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-@AutoService(PrefixCommand.class)
-public class ClearChatCommand implements PrefixCommand {
+@AutoService(BotCommand.class)
+public class ClearChatCommand implements BotCommand {
     private static final Logger log = LoggerFactory.getLogger(ClearChatCommand.class);
     private static final Pattern AMOUNT_PATTERN = Pattern.compile("100|[1-9]\\d?");
     private static final String COMMAND_NAME = "limpar";
+    private static final String AMOUNT_OPTION = "quantidade";
     private static final int MIN_AMOUNT = 1;
     private static final int MAX_AMOUNT = 100;
     private static final long FEEDBACK_TTL_SECONDS = 10;
@@ -37,6 +42,12 @@ public class ClearChatCommand implements PrefixCommand {
     @Override
     public String getDescription() {
         return BundleManager.get("clear.description", MAX_AMOUNT);
+    }
+
+    @Override
+    public List<OptionData> getOptions() {
+        return List.of(new OptionData(OptionType.INTEGER, AMOUNT_OPTION, BundleManager.get("clear.option"), false)
+                .setRequiredRange(MIN_AMOUNT, MAX_AMOUNT));
     }
 
     @Override
@@ -68,6 +79,58 @@ public class ClearChatCommand implements PrefixCommand {
         int amount = args.length == 1 ? MAX_AMOUNT : Integer.parseInt(args[1]);
 
         clearMessages(channel, event.getMessage(), author, amount);
+    }
+
+    @Override
+    public void execute(SlashCommandInteractionEvent event) {
+        if (!event.isFromGuild()) {
+            event.reply(BundleManager.get("clear.guild-only")).setEphemeral(true).queue();
+            return;
+        }
+
+        GuildMessageChannel channel = event.getGuildChannel();
+        Member author = event.getMember();
+
+        if (author == null || !author.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
+            event.reply(BundleManager.get("clear.no-permission")).setEphemeral(true).queue();
+            return;
+        }
+
+        Member self = event.getGuild().getSelfMember();
+        if (!self.hasPermission(channel, Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY)) {
+            event.reply(BundleManager.get("clear.bot-no-permission")).setEphemeral(true).queue();
+            return;
+        }
+
+        int amount = event.getOption(AMOUNT_OPTION, MAX_AMOUNT, OptionMapping::getAsInt);
+
+        event.deferReply(true).queue();
+        channel.getIterableHistory()
+               .takeAsync(amount)
+               .thenCompose(msgs -> purge(channel, msgs))
+               .thenAccept(deleted -> {
+                   log.info("{} message(s) deleted by userId={} | username={} | guildId={} | channelId={}",
+                           deleted,
+                           author.getIdLong(),
+                           author.getUser().getName(),
+                           channel.getGuild().getIdLong(),
+                           channel.getIdLong());
+                   event.getHook()
+                        .sendMessage(BundleManager.get("clear.success", deleted, FEEDBACK_TTL_SECONDS))
+                        .queue(ignored -> event.getHook()
+                                               .deleteOriginal()
+                                               .queueAfter(FEEDBACK_TTL_SECONDS, TimeUnit.SECONDS, null, IGNORE_UNKNOWN_MESSAGE));
+               })
+               .exceptionally(failure -> {
+                   log.warn("Failed to clear messages | requested by userId={} | username={} | guildId={} | channelId={}",
+                           author.getIdLong(),
+                           author.getUser().getName(),
+                           channel.getGuild().getIdLong(),
+                           channel.getIdLong(),
+                           failure);
+                   event.getHook().sendMessage(BundleManager.get("clear.failure", FEEDBACK_TTL_SECONDS)).queue();
+                   return null;
+               });
     }
 
     private void clearMessages(GuildMessageChannel channel, Message commandMessage, Member author, int amount) {

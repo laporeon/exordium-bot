@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.List;
 
-public interface PrefixCommand {
+public interface BotCommand {
     String getName();
     String getDescription();
     void execute(MessageReceivedEvent event, String[] args);
