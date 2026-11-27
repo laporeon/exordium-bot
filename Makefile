@@ -6,7 +6,7 @@ DISCLOUD_ZIP := discloud.zip
 
 .PHONY: help env build compile verify clean run discloud
 
-help: ## Show available prefixCommands
+help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 env: ## Create .env from .env.example if missing
