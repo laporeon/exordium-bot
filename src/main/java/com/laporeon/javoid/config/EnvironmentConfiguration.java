@@ -12,25 +12,8 @@ public class EnvironmentConfiguration {
         return require("DISCORD_TOKEN");
     }
 
-    public static String profile() {
-        return require("ACTIVE_PROFILE");
-    }
-
-    public static Optional<String> guildId() {
-        return get("DISCORD_GUILD_ID");
-    }
-
-    public static boolean isDev() {
-        return profile().equalsIgnoreCase("dev");
-    }
-
     public static void validate() {
         token();
-        profile();
-
-        if (isDev() && guildId().isEmpty()) {
-            throw new ConfigurationException("'DISCORD_GUILD_ID' must be set in development mode.");
-        }
     }
 
     private static String require(String key) {
